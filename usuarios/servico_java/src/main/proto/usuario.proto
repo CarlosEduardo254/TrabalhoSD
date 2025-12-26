@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.hospital.grpc";
+option java_outer_classname = "UsuarioProto";
+
+service UsuarioService {
+  // Função que o Python vai chamar no Java
+  rpc CriarPaciente (PacienteRequest) returns (PacienteResponse);
+}
+
+// O que o Python manda
+message PacienteRequest {
+  string nome = 1;
+  string problema = 2;
+  string telefone = 3;
+  string email = 4;
+  string senha = 5;
+}
+
+// O que o Java responde
+message PacienteResponse {
+  string mensagem = 1;
+  int32 id_gerado = 2;
+}
