@@ -37,7 +37,7 @@ def agendar_consulta(id_medico, id_paciente, data, horario):
         # Insere
         query_insert = """
             INSERT INTO consulta (id_medico, id_paciente, data_consulta, horario_consulta, status)
-            VALUES (%s, %s, %s, %s, 'Agendada')
+            VALUES (%s, %s, %s, %s, 'Pendente')
         """
         cursor.execute(query_insert, (id_medico, id_paciente, data, horario))
         conn.commit()

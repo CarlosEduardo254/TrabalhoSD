@@ -12,13 +12,13 @@ services:
     volumes:
       # Isso pega seu script SD.sql e roda na primeira vez que o banco subir
       - ./database/SD.sql:/docker-entrypoint-initdb.d/init.sql
-
-  # RabbitMQ (Para notificações - já deixamos pronto)
+  # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq_container
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672" # Porta de comunicação (Código)
+      - "15672:15672" # Porta do Painel Web (Navegador)
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
