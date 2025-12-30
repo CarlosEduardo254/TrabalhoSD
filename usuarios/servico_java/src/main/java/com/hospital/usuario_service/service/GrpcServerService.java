@@ -1,46 +1,96 @@
 package com.hospital.usuario_service.service;
 
-import com.hospital.grpc.UsuarioServiceGrpc;
-import com.hospital.grpc.PacienteRequest;
-import com.hospital.grpc.PacienteResponse;
-
-import com.hospital.usuario_service.model.Paciente;
-import com.hospital.usuario_service.repository.PacienteRepository;
+import com.hospital.grpc.*;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.sql.*;
 
 @GrpcService
 public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase {
 
-    @Autowired
-    private PacienteRepository pacienteRepository;
+    // Configurações de conexão com o MySQL do Docker
+    private Connection getConnection() throws SQLException {
+        String url = "jdbc:mysql://localhost:3307/hospital_db"; // Certifica que o nome do banco está correto
+        String user = "root"; 
+        String password = "123"; 
+        return DriverManager.getConnection(url, user, password);
+    }
 
     @Override
-    public void criarPaciente(PacienteRequest request, StreamObserver<PacienteResponse> responseObserver) {
+    public void criarUsuario(UsuarioRequest request, StreamObserver<UsuarioResponse> responseObserver) {
+        String tipo = request.getTipo().toLowerCase();
+        String sql = "";
+        boolean sucesso = false;
+        String mensagem = "";
 
-        System.out.println(">>> gRPC: Recebido pedido para criar: " + request.getNome());
+        // LÓGICA DE DISTINÇÃO DE PERFIS
+        switch (tipo) {
+            case "paciente":
+                sql = "INSERT INTO paciente (nome, problema, telefone, email, senha) VALUES (?, ?, ?, ?, ?)";
+                break;
+            case "medico":
+                //info_extra(CRM)
+                sql = "INSERT INTO medico (nome_med, especialidade, crm, telefone, email, senha) VALUES (?, 'Geral', ?, ?, ?, ?)";
+                break;
+            case "recepcionista":
+                sql = "INSERT INTO recepcionista (nome, telefone, email, senha) VALUES (?, ?, ?, ?)";
+                break;
+            case "admin":
+                sql = "INSERT INTO administradores (nome, telefone, email, senha) VALUES (?, ?, ?, ?)";
+                break;
+            default:
+                mensagem = "Tipo de usuário inválido!";
+        }
 
-        // Converter o objeto do gRPC (Proto) para o objeto do Banco (Entity)
-        Paciente novoPaciente = new Paciente(
-                request.getNome(),
-                request.getProblema(),
-                request.getTelefone(),
-                request.getEmail(),
-                request.getSenha());
+        if (!sql.isEmpty()) {
+            try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                
+                // Preenchimento dos campos baseado na tabela
+                if (tipo.equals("paciente") || tipo.equals("medico")) {
+                    pstmt.setString(1, request.getNome());
+                    pstmt.setString(2, request.getInfoExtra()); // Problema ou CRM
+                    pstmt.setString(3, request.getTelefone());
+                    pstmt.setString(4, request.getEmail());
+                    pstmt.setString(5, request.getSenha());
+                } else {
+                    // Recepcionista e Admin não têm o campo info_extra(no caso o problema ou CRM)
+                    pstmt.setString(1, request.getNome());
+                    pstmt.setString(2, request.getTelefone());
+                    pstmt.setString(3, request.getEmail());
+                    pstmt.setString(4, request.getSenha());
+                }
 
-        // Salvar no Banco de Dados
-        Paciente pacienteSalvo = pacienteRepository.save(novoPaciente);
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows > 0) {
+                    sucesso = true;
+                    mensagem = "Cadastro de " + tipo + " realizado com sucesso";
+                }
+            } catch (SQLException e) {
+                mensagem = "Erro no Banco: " + e.getMessage();
+                e.printStackTrace();
+            }
+        }
 
-        System.out.println(">>> gRPC: Salvo com sucesso. ID gerado: " + pacienteSalvo.getId());
-
-        // Montar a resposta
-        PacienteResponse resposta = PacienteResponse.newBuilder()
-                .setMensagem("SUCESSO: Paciente cadastrado via Java/gRPC!")
-                .setIdGerado(pacienteSalvo.getId().intValue())
+        UsuarioResponse response = UsuarioResponse.newBuilder()
+                .setMensagem(mensagem)
+                .setSucesso(sucesso)
+                .setIdGerado(sucesso ? 1 : 0)
                 .build();
 
-        responseObserver.onNext(resposta);
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void login(LoginRequest request, StreamObserver<LoginResponse> responseObserver) {
+        //teste de login, mais tarde temos que fazer uma busca usando o "select" nas tabelas do bd
+        LoginResponse response = LoginResponse.newBuilder()
+                .setAutenticado(true)
+                .setMensagem("Login simulado com sucesso")
+                .setTipoUsuario("paciente")
+                .setNome("Teste")
+                .build();
+        responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 }

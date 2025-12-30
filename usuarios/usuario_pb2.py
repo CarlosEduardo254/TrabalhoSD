@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rusuario.proto\"a\n\x0fPacienteRequest\x12\x0c\n\x04nome\x18\x01 \x01(\t\x12\x10\n\x08problema\x18\x02 \x01(\t\x12\x10\n\x08telefone\x18\x03 \x01(\t\x12\r\n\x05\x65mail\x18\x04 \x01(\t\x12\r\n\x05senha\x18\x05 \x01(\t\"7\n\x10PacienteResponse\x12\x10\n\x08mensagem\x18\x01 \x01(\t\x12\x11\n\tid_gerado\x18\x02 \x01(\x05\x32\x46\n\x0eUsuarioService\x12\x34\n\rCriarPaciente\x12\x10.PacienteRequest\x1a\x11.PacienteResponseB#\n\x11\x63om.hospital.grpcB\x0cUsuarioProtoP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rusuario.proto\"p\n\x0eUsuarioRequest\x12\x0c\n\x04nome\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\r\n\x05senha\x18\x03 \x01(\t\x12\x10\n\x08telefone\x18\x04 \x01(\t\x12\x0c\n\x04tipo\x18\x05 \x01(\t\x12\x12\n\ninfo_extra\x18\x06 \x01(\t\"G\n\x0fUsuarioResponse\x12\x10\n\x08mensagem\x18\x01 \x01(\t\x12\x11\n\tid_gerado\x18\x02 \x01(\x05\x12\x0f\n\x07sucesso\x18\x03 \x01(\x08\",\n\x0cLoginRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\x12\r\n\x05senha\x18\x02 \x01(\t\"n\n\rLoginResponse\x12\x13\n\x0b\x61utenticado\x18\x01 \x01(\x08\x12\x10\n\x08mensagem\x18\x02 \x01(\t\x12\x12\n\nid_usuario\x18\x03 \x01(\x05\x12\x14\n\x0ctipo_usuario\x18\x04 \x01(\t\x12\x0c\n\x04nome\x18\x05 \x01(\t2k\n\x0eUsuarioService\x12\x31\n\x0c\x43riarUsuario\x12\x0f.UsuarioRequest\x1a\x10.UsuarioResponse\x12&\n\x05Login\x12\r.LoginRequest\x1a\x0e.LoginResponseB#\n\x11\x63om.hospital.grpcB\x0cUsuarioProtoP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,10 +32,14 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'usuario_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\021com.hospital.grpcB\014UsuarioProtoP\001'
-  _globals['_PACIENTEREQUEST']._serialized_start=17
-  _globals['_PACIENTEREQUEST']._serialized_end=114
-  _globals['_PACIENTERESPONSE']._serialized_start=116
-  _globals['_PACIENTERESPONSE']._serialized_end=171
-  _globals['_USUARIOSERVICE']._serialized_start=173
-  _globals['_USUARIOSERVICE']._serialized_end=243
+  _globals['_USUARIOREQUEST']._serialized_start=17
+  _globals['_USUARIOREQUEST']._serialized_end=129
+  _globals['_USUARIORESPONSE']._serialized_start=131
+  _globals['_USUARIORESPONSE']._serialized_end=202
+  _globals['_LOGINREQUEST']._serialized_start=204
+  _globals['_LOGINREQUEST']._serialized_end=248
+  _globals['_LOGINRESPONSE']._serialized_start=250
+  _globals['_LOGINRESPONSE']._serialized_end=360
+  _globals['_USUARIOSERVICE']._serialized_start=362
+  _globals['_USUARIOSERVICE']._serialized_end=469
 # @@protoc_insertion_point(module_scope)

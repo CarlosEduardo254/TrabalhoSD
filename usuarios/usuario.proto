@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.hospital.grpc";
+option java_outer_classname = "UsuarioProto";
+
+service UsuarioService {
+  // Criação de conta (distingue pelo campo 'tipo')
+  rpc CriarUsuario (UsuarioRequest) returns (UsuarioResponse);
+  
+  // Login de usuário
+  rpc Login (LoginRequest) returns (LoginResponse);
+}
+
+message UsuarioRequest {
+  string nome = 1;
+  string email = 2;
+  string senha = 3;
+  string telefone = 4;
+  string tipo = 5;       // "paciente", "medico", "recepcionista", "admin"
+  string info_extra = 6;  // Problema ou CRM
+}
+
+message UsuarioResponse {
+  string mensagem = 1;
+  int32 id_gerado = 2;
+  bool sucesso = 3;
+}
+
+message LoginRequest {
+  string email = 1;
+  string senha = 2;
+}
+
+message LoginResponse {
+  bool autenticado = 1;
+  string mensagem = 2;
+  int32 id_usuario = 3;
+  string tipo_usuario = 4; // Retorna "paciente", "medico", etc.
+  string nome = 5;
+}

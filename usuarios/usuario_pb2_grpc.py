@@ -34,18 +34,30 @@ class UsuarioServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.CriarPaciente = channel.unary_unary(
-                '/UsuarioService/CriarPaciente',
-                request_serializer=usuario__pb2.PacienteRequest.SerializeToString,
-                response_deserializer=usuario__pb2.PacienteResponse.FromString,
+        self.CriarUsuario = channel.unary_unary(
+                '/UsuarioService/CriarUsuario',
+                request_serializer=usuario__pb2.UsuarioRequest.SerializeToString,
+                response_deserializer=usuario__pb2.UsuarioResponse.FromString,
+                _registered_method=True)
+        self.Login = channel.unary_unary(
+                '/UsuarioService/Login',
+                request_serializer=usuario__pb2.LoginRequest.SerializeToString,
+                response_deserializer=usuario__pb2.LoginResponse.FromString,
                 _registered_method=True)
 
 
 class UsuarioServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def CriarPaciente(self, request, context):
-        """Função que o Python vai chamar no Java
+    def CriarUsuario(self, request, context):
+        """Criação de conta (distingue pelo campo 'tipo')
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Login(self, request, context):
+        """Login de usuário
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -54,10 +66,15 @@ class UsuarioServiceServicer(object):
 
 def add_UsuarioServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'CriarPaciente': grpc.unary_unary_rpc_method_handler(
-                    servicer.CriarPaciente,
-                    request_deserializer=usuario__pb2.PacienteRequest.FromString,
-                    response_serializer=usuario__pb2.PacienteResponse.SerializeToString,
+            'CriarUsuario': grpc.unary_unary_rpc_method_handler(
+                    servicer.CriarUsuario,
+                    request_deserializer=usuario__pb2.UsuarioRequest.FromString,
+                    response_serializer=usuario__pb2.UsuarioResponse.SerializeToString,
+            ),
+            'Login': grpc.unary_unary_rpc_method_handler(
+                    servicer.Login,
+                    request_deserializer=usuario__pb2.LoginRequest.FromString,
+                    response_serializer=usuario__pb2.LoginResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -71,7 +88,7 @@ class UsuarioService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def CriarPaciente(request,
+    def CriarUsuario(request,
             target,
             options=(),
             channel_credentials=None,
@@ -84,9 +101,36 @@ class UsuarioService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/UsuarioService/CriarPaciente',
-            usuario__pb2.PacienteRequest.SerializeToString,
-            usuario__pb2.PacienteResponse.FromString,
+            '/UsuarioService/CriarUsuario',
+            usuario__pb2.UsuarioRequest.SerializeToString,
+            usuario__pb2.UsuarioResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Login(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/UsuarioService/Login',
+            usuario__pb2.LoginRequest.SerializeToString,
+            usuario__pb2.LoginResponse.FromString,
             options,
             channel_credentials,
             insecure,
