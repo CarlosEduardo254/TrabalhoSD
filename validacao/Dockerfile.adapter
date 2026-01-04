@@ -1,0 +1,20 @@
+FROM python:3.9-slim
+
+# Install OpenJDK 21 (available in Debian Trixie/Sid which python:3.9-slim uses)
+RUN apt-get update && \
+    apt-get install -y openjdk-21-jre-headless && \
+    apt-get clean;
+
+WORKDIR /app
+
+# Install Python deps
+RUN pip install flask requests
+
+# Copy source
+COPY src ./src
+COPY interface_validacao.py .
+
+# Compile RMI Client
+RUN apt-get install -y openjdk-21-jdk-headless && javac src/*.java
+
+CMD ["python", "interface_validacao.py"]

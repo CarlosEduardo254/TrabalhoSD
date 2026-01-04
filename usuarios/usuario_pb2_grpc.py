@@ -44,21 +44,30 @@ class UsuarioServiceStub(object):
                 request_serializer=usuario__pb2.LoginRequest.SerializeToString,
                 response_deserializer=usuario__pb2.LoginResponse.FromString,
                 _registered_method=True)
+        self.VerificarUsuario = channel.unary_unary(
+                '/UsuarioService/VerificarUsuario',
+                request_serializer=usuario__pb2.VerificarUsuarioRequest.SerializeToString,
+                response_deserializer=usuario__pb2.VerificarUsuarioResponse.FromString,
+                _registered_method=True)
 
 
 class UsuarioServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def CriarUsuario(self, request, context):
-        """Criação de conta (distingue pelo campo 'tipo')
-        """
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def Login(self, request, context):
-        """Login de usuário
-        """
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def VerificarUsuario(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -75,6 +84,11 @@ def add_UsuarioServiceServicer_to_server(servicer, server):
                     servicer.Login,
                     request_deserializer=usuario__pb2.LoginRequest.FromString,
                     response_serializer=usuario__pb2.LoginResponse.SerializeToString,
+            ),
+            'VerificarUsuario': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerificarUsuario,
+                    request_deserializer=usuario__pb2.VerificarUsuarioRequest.FromString,
+                    response_serializer=usuario__pb2.VerificarUsuarioResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -131,6 +145,33 @@ class UsuarioService(object):
             '/UsuarioService/Login',
             usuario__pb2.LoginRequest.SerializeToString,
             usuario__pb2.LoginResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def VerificarUsuario(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/UsuarioService/VerificarUsuario',
+            usuario__pb2.VerificarUsuarioRequest.SerializeToString,
+            usuario__pb2.VerificarUsuarioResponse.FromString,
             options,
             channel_credentials,
             insecure,

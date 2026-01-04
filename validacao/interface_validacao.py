@@ -48,4 +48,4 @@ def validar_convenio():
 if __name__ == '__main__':
     # Porta 8084 para não conflitar com Agendamento(8081) e Usuários(8083) e Web(8082)
     print("--- Interface Validação (Python) rodando em http://localhost:8084 ---")
-    app.run(port=8084, debug=True)
+    app.run(host='0.0.0.0', port=8084, debug=True)

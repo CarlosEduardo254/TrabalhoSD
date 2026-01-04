@@ -4,10 +4,18 @@ import os
 
 def main():
     # Conexão com o RabbitMQ
+    # Conexão com o RabbitMQ com Retry
     credentials = pika.PlainCredentials('user', 'password')
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host='localhost', port=5672, credentials=credentials)
-    )
+    parameters = pika.ConnectionParameters(host='rabbitmq', port=5672, credentials=credentials)
+    
+    connection = None
+    while connection is None:
+        try:
+            connection = pika.BlockingConnection(parameters)
+        except pika.exceptions.AMQPConnectionError:
+            import time
+            print("RabbitMQ não disponível ainda, tentando novamente em 5s...")
+            time.sleep(5)
     channel = connection.channel()
 
     #Cria a fila 'email_queue' se ela não existir

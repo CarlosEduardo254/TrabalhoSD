@@ -10,15 +10,95 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      # Isso pega seu script SD.sql e roda na primeira vez que o banco subir
       - ./database/SD.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
   # RabbitMQ
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq_container
     ports:
-      - "5672:5672" # Porta de comunicação (Código)
-      - "15672:15672" # Porta do Painel Web (Navegador)
+      - "5672:5672" # Porta de comunicação
+      - "15672:15672" # Painel Web
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Serviço de Usuários (Java gRPC)
+  servico-usuarios:
+    build: ./usuarios/servico_java
+    ports:
+      - "50051:50051"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Serviço de Validação (Java RMI Server)
+  servico-validacao:
+    build: ./validacao
+    ports:
+      - "1099:1099" # Porta Registry RMI
+    # O servidor Java roda e expõe 1099.
+
+    # Adapter (Python Interface + Java Client)
+  servico-adapter:
+    build:
+      context: ./validacao
+      dockerfile: Dockerfile.adapter
+    ports:
+      - "8084:8084" # Interface HTTP do Adapter
+    environment:
+      - RMI_HOST=servico-validacao
+    depends_on:
+      - servico-validacao
+
+  # Serviço de Agendamento (Python)
+  servico-agendamento:
+    build: ./agendamento
+    ports:
+      - "5000:5000"
+    environment:
+      - GRPC_SERVER_HOST=servico-usuarios
+      - ADAPTER_HOST=servico-adapter
+    depends_on:
+      - rabbitmq
+      - db
+      - servico-usuarios
+      - servico-adapter
+
+  # Serviço de Notificações
+  servico-notificacoes:
+    build: ./notificacoes
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  # --- INTERFACES HTTP (Gateways) ---
+  interface-usuarios:
+    build: .
+    command: python usuarios/interface_usuarios.py
+    ports:
+      - "8083:8083"
+    environment:
+      - GRPC_SERVER_HOST=servico-usuarios
+      - GRPC_SERVER_PORT=50051
+    depends_on:
+      - servico-usuarios
+
+  interface-agendamento:
+    build: .
+    command: python agendamento/interface_agendamento.py
+    ports:
+      - "8081:8081"
+    environment:
+      - SOCKET_HOST=servico-agendamento
+    depends_on:
+      - servico-agendamento

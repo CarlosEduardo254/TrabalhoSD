@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.1</version>
+		<version>3.4.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.hospital</groupId>
@@ -16,8 +16,8 @@
 
 	<properties>
 		<java.version>21</java.version>
-		<protobuf.version>3.24.0</protobuf.version>
-		<grpc.version>1.58.0</grpc.version>
+		<protobuf.version>3.25.1</protobuf.version>
+		<grpc.version>1.63.0</grpc.version>
 	</properties>
 
 	<dependencies>

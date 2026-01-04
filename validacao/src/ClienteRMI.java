@@ -11,9 +11,10 @@ public class ClienteRMI {
             }
 
             String numeroCartao = args[0];
+            String host = (args.length > 1) ? args[1] : "localhost"; // Pega host do argumento ou default
 
             // Procura o registro RMI
-            Registry registry = LocateRegistry.getRegistry("localhost", 1099);
+            Registry registry = LocateRegistry.getRegistry(host, 1099);
             // Busca serviço
             IValidador validador = (IValidador) registry.lookup("ValidadorService");
 

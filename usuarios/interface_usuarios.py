@@ -1,18 +1,21 @@
 from flask import Flask, request, jsonify
+import os
 import grpc
 import usuario_pb2
 import usuario_pb2_grpc
+import os
 
 app = Flask(__name__)
 
-def obter_stub():
-    channel = grpc.insecure_channel('localhost:9090')
-    return usuario_pb2_grpc.UsuarioServiceStub(channel)
+# Configuração do gRPC
+grpc_host = os.getenv('GRPC_SERVER_HOST', 'localhost')
+grpc_port = os.getenv('GRPC_SERVER_PORT', '50051') # Default gRPC port
+channel = grpc.insecure_channel(f'{grpc_host}:{grpc_port}')
+stub = usuario_pb2_grpc.UsuarioServiceStub(channel)
 
 @app.route('/criar_usuario', methods=['POST'])
 def criar_usuario():
     dados = request.json
-    stub = obter_stub()
     
     # Monta a requisição com o campo 'tipo' (paciente, medico, etc)
     request_grpc = usuario_pb2.UsuarioRequest(
@@ -33,7 +36,7 @@ def criar_usuario():
 @app.route('/login', methods=['POST'])
 def login():
     dados = request.json
-    stub = obter_stub()
+    # stub já é global
     
     request_login = usuario_pb2.LoginRequest(
         email=dados.get('email'),
@@ -55,4 +58,4 @@ def login():
         return jsonify({"erro": str(e.code())}), 500
 
 if __name__ == '__main__':
-    app.run(port=8083, debug=True)
+    app.run(host='0.0.0.0', port=8083, debug=True)

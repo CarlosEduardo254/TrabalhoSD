@@ -10,15 +10,17 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
 
     // Configurações de conexão com o MySQL do Docker
     private Connection getConnection() throws SQLException {
-        String url = "jdbc:mysql://localhost:3307/hospital_db"; // Certifica que o nome do banco está correto
-        String user = "root"; 
-        String password = "123"; 
+        String url = "jdbc:mysql://db:3306/hospital_db";
+        String user = "root";
+        String password = "123";
         return DriverManager.getConnection(url, user, password);
     }
 
     @Override
     public void criarUsuario(UsuarioRequest request, StreamObserver<UsuarioResponse> responseObserver) {
         String tipo = request.getTipo().toLowerCase();
+        System.out.println("[DEBUG] CriarUsuario - Tipo Recebido: '" + tipo + "'");
+        System.out.println("[DEBUG] CriarUsuario - Raw Request: " + request.toString());
         String sql = "";
         boolean sucesso = false;
         String mensagem = "";
@@ -29,7 +31,7 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
                 sql = "INSERT INTO paciente (nome, problema, telefone, email, senha) VALUES (?, ?, ?, ?, ?)";
                 break;
             case "medico":
-                //info_extra(CRM)
+                // info_extra(CRM)
                 sql = "INSERT INTO medico (nome_med, especialidade, crm, telefone, email, senha) VALUES (?, 'Geral', ?, ?, ?, ?)";
                 break;
             case "recepcionista":
@@ -43,8 +45,9 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
         }
 
         if (!sql.isEmpty()) {
-            try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                
+            try (Connection conn = getConnection();
+                    PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
                 // Preenchimento dos campos baseado na tabela
                 if (tipo.equals("paciente") || tipo.equals("medico")) {
                     pstmt.setString(1, request.getNome());
@@ -83,12 +86,77 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
 
     @Override
     public void login(LoginRequest request, StreamObserver<LoginResponse> responseObserver) {
-        //teste de login, mais tarde temos que fazer uma busca usando o "select" nas tabelas do bd
+        boolean autenticado = false;
+        String mensagem = "Usuário ou senha inválidos";
+        String tipoUsuario = "";
+        String nome = "";
+        int idUsuario = 0;
+
+        // Tabelas possíveis para login
+        String[] tabelas = { "paciente", "medico", "recepcionista", "administradores" };
+
+        try (Connection conn = getConnection()) {
+            for (String tabela : tabelas) {
+                // Query genérica para buscar em qualquer uma das tabelas
+                String colNome = tabela.equals("medico") ? "nome_med" : "nome";
+                String colId = tabela.equals("medico") ? "id_med" : "id_usuario"; // Médicos usam id_med
+
+                String sql = "SELECT " + colNome + ", " + colId + " FROM " + tabela + " WHERE email = ? AND senha = ?";
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                    pstmt.setString(1, request.getEmail());
+                    pstmt.setString(2, request.getSenha());
+
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            autenticado = true;
+                            mensagem = "Login realizado com sucesso";
+                            tipoUsuario = tabela;
+                            nome = rs.getString(colNome);
+                            idUsuario = rs.getInt(colId);
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            mensagem = "Erro interno no Banco: " + e.getMessage();
+            e.printStackTrace();
+        }
+
         LoginResponse response = LoginResponse.newBuilder()
-                .setAutenticado(true)
-                .setMensagem("Login simulado com sucesso")
-                .setTipoUsuario("paciente")
-                .setNome("Teste")
+                .setAutenticado(autenticado)
+                .setMensagem(mensagem)
+                .setTipoUsuario(tipoUsuario)
+                .setNome(nome)
+                .setIdUsuario(idUsuario)
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void verificarUsuario(VerificarUsuarioRequest request,
+            StreamObserver<VerificarUsuarioResponse> responseObserver) {
+        boolean existe = false;
+        int id = request.getId();
+
+        // Verifica na tabela paciente
+        String sql = "SELECT count(*) FROM paciente WHERE id_usuario = ?";
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    existe = rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        VerificarUsuarioResponse response = VerificarUsuarioResponse.newBuilder()
+                .setExiste(existe)
                 .build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();

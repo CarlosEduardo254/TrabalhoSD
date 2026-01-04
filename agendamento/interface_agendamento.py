@@ -23,9 +23,10 @@ def enviar_notificacao_fila(texto_msg):
         print(f"[RabbitMQ] Erro ao enviar mensagem: {e}")
 
 
+import os
 # Função que age como CLIENTE do Socket (igual ao curl ou browser)
 def enviar_socket(dados_dict):
-    HOST = '127.0.0.1' 
+    HOST = os.getenv('SOCKET_HOST', '127.0.0.1')
     PORT = 5000        
     
     try:
@@ -56,6 +57,9 @@ def rota_agendar():
     if not dados:
         return jsonify({"erro": "Sem dados"}), 400
     
+    # Adiciona a ação para o socket saber o que fazer
+    dados['acao'] = 'agendar'
+
     # A MÁGICA: A interface não salva nada. Ela repassa a bola pro Socket.
     resposta_servico = enviar_socket(dados)
 
@@ -69,6 +73,25 @@ def rota_agendar():
         "resposta_do_servico": resposta_servico
     })
 
+@app.route('/listar_agenda', methods=['POST'])
+def rota_listar_agenda():
+    dados = request.json
+    if not dados or 'id_medico' not in dados:
+        return jsonify({"erro": "ID do médico obrigatório"}), 400
+
+    dados['acao'] = 'listar_medico'
+    
+    # Chama o socket (que agora retorna um JSON string com a lista)
+    resposta_servico = enviar_socket(dados)
+    
+    try:
+        # O socket retorna uma string, se for lista JSON válida, convertemos de volta
+        lista = json.loads(resposta_servico)
+        return jsonify(lista)
+    except:
+        # Se deu erro ou retornou texto puro
+        return jsonify({"erro": resposta_servico})
+
 if __name__ == '__main__':
     # Roda o servidor web na porta 8081
-    app.run(port=8081, debug=True)
+    app.run(host='0.0.0.0', port=8081, debug=True)
