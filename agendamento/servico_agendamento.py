@@ -24,6 +24,23 @@ DB_CONFIG = {
 def conectar_banco():
     return mysql.connector.connect(**DB_CONFIG)
 
+def notificar_consulta_confirmada(mensagem):
+    """
+    Envia notificação via RabbitMQ quando uma consulta é confirmada.
+    """
+    try:
+        credentials = pika.PlainCredentials('user', 'password')
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host='rabbitmq', port=5672, credentials=credentials)
+        )
+        channel = connection.channel()
+        channel.queue_declare(queue='email_queue')
+        channel.basic_publish(exchange='', routing_key='email_queue', body=mensagem)
+        print(f"[RabbitMQ] Notificação enviada: {mensagem}", flush=True)
+        connection.close()
+    except Exception as e:
+        print(f"[RabbitMQ] Erro ao notificar: {e}", flush=True)
+
 # Coordenação de fluxo do agendamento
 def orquestrar_agendamento(dados):
     """
@@ -38,7 +55,7 @@ def orquestrar_agendamento(dados):
     """
 
     # 1. Verificar se paciente existe
-    paciente_existe = verificar_paciente_grpc(dados["id_paciente"])
+    paciente_existe = verificar_paciente_grpc(int(dados["id_paciente"]))
     if not paciente_existe:
         return {
             "sucesso": False,
@@ -146,38 +163,111 @@ def atualizar_status_consulta(id_consulta, novo_status):
         cursor.close()
         conn.close()
 
+def cancelar_consulta(id_consulta, id_paciente=None):
+    """
+    Cancela uma consulta pelo ID.
+    Se id_paciente for informado, verifica se a consulta pertence ao paciente.
+    """
+    conn = conectar_banco()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Verifica se a consulta existe
+        if id_paciente:
+            cursor.execute(
+                "SELECT * FROM consulta WHERE id_consulta = %s AND id_paciente = %s",
+                (id_consulta, id_paciente)
+            )
+        else:
+            cursor.execute("SELECT * FROM consulta WHERE id_consulta = %s", (id_consulta,))
+        
+        consulta = cursor.fetchone()
+        
+        if not consulta:
+            return {"sucesso": False, "mensagem": "Consulta não encontrada ou não pertence ao paciente"}
+        
+        # Deleta a consulta
+        cursor.execute("DELETE FROM consulta WHERE id_consulta = %s", (id_consulta,))
+        conn.commit()
+        
+        return {"sucesso": True, "mensagem": "Consulta cancelada com sucesso"}
+    except Exception as e:
+        return {"sucesso": False, "mensagem": f"Erro ao cancelar: {str(e)}"}
+    finally:
+        cursor.close()
+        conn.close()
+
+def listar_consultas_paciente(id_paciente):
+    """
+    Lista todas as consultas de um paciente
+    """
+    conn = conectar_banco()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        sql = """
+            SELECT c.id_consulta, c.data_consulta, c.horario_consulta, c.status, m.nome_med as nome_medico
+            FROM consulta c
+            JOIN medico m ON c.id_medico = m.id_med
+            WHERE c.id_paciente = %s
+            ORDER BY c.data_consulta, c.horario_consulta
+        """
+        cursor.execute(sql, (id_paciente,))
+        return cursor.fetchall()
+    except Exception as e:
+        print(f"Erro ao listar consultas do paciente: {e}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def registrar_pagamento(id_consulta, valor, forma_pagamento):
+    """
+    Registra o pagamento de uma consulta e atualiza o status para CONFIRMADA.
+    """
+    conn = conectar_banco()
+    cursor = conn.cursor()
+    try:
+        # Verifica se a consulta existe e está PENDENTE
+        cursor.execute("SELECT status FROM consulta WHERE id_consulta = %s", (id_consulta,))
+        resultado = cursor.fetchone()
+        
+        if not resultado:
+            return {"sucesso": False, "mensagem": "Consulta não encontrada"}
+        
+        if resultado[0] == "CONFIRMADA":
+            return {"sucesso": False, "mensagem": "Consulta já está confirmada"}
+        
+        # Registra o pagamento
+        cursor.execute("""
+            INSERT INTO pagamento (id_consulta, valor, forma_pagamento, status_validacao)
+            VALUES (%s, %s, %s, 'PAGO')
+        """, (id_consulta, valor, forma_pagamento))
+        
+        # Atualiza o status da consulta para CONFIRMADA
+        cursor.execute("UPDATE consulta SET status = 'CONFIRMADA' WHERE id_consulta = %s", (id_consulta,))
+        
+        conn.commit()
+        
+        return {"sucesso": True, "mensagem": "Pagamento registrado e consulta confirmada"}
+    except Exception as e:
+        return {"sucesso": False, "mensagem": f"Erro ao processar pagamento: {str(e)}"}
+    finally:
+        cursor.close()
+        conn.close()
+
 def validar_consulta_rmi(id_paciente, id_consulta) -> bool:
     """
-    Chama o Adapter via HTTP, que por sua vez chama o Java RMI
+    Simula validação de convênio.
+    Regra: ID do paciente par = convênio aprovado
+           ID do paciente ímpar = convênio rejeitado (precisa pagar)
+    
+    Em produção, isso chamaria um serviço RMI externo.
     """
-    try:
-        # Pega a URL do Adapter do ambiente docker
-        adapter_host = os.getenv('ADAPTER_HOST', 'servico-adapter')
-        url = f"http://{adapter_host}:8084/validar_convenio"
-        
-        # Simulação: O cartão do convênio poderia vir no payload. 
-        # Como não vem no JSON original, vamos simular que o ID do paciente é usado p/ buscar o cartão
-        # ou vamos passar um dummy para validar.
-        # REGRA DE NEGOCIO: Validamos se o ID do paciente é par/impar como regra do RMI lá no Java
-        numero_cartao_simulado = f"1000{id_paciente}" 
-        
-        payload = {"numero_cartao": numero_cartao_simulado}
-        
-        print(f"[Orchestrator] Chamando Adapter em {url} com {payload}", flush=True)
-        response = requests.post(url, json=payload, timeout=5)
-        
-        if response.status_code == 200:
-            dados = response.json()
-            # O Java RMI retorna "VALIDO" ou "INVALIDO"
-            status_rmi = dados.get("status_convenio", "").strip()
-            return status_rmi == "VALIDO"
-            
-        print(f"[Orchestrator] Erro no Adapter: {response.text}")
-        return False
-
-    except Exception as e:
-        print(f"[RMI/Adapter] Erro ao validar consulta: {e}")
-        return False
+    print(f"[Validação] Verificando convênio para paciente {id_paciente}", flush=True)
+    
+    aprovado = int(id_paciente) % 2 == 0
+    
+    print(f"[Validação] Resultado: {'APROVADO' if aprovado else 'REJEITADO'}", flush=True)
+    return aprovado
 
 def processar_cliente(con, endereco):
     print(f"[Socket] Cliente conectado: {endereco}", flush=True)
@@ -207,6 +297,26 @@ def processar_cliente(con, endereco):
                 elif acao == 'listar_medico':
                     lista = listar_agendamentos_medico(dados.get('id_medico'))
                     resposta = json.dumps(lista, default=str) # Serializa lista para JSON string
+                
+                elif acao == 'listar_paciente':
+                    lista = listar_consultas_paciente(int(dados.get('id_paciente')))
+                    resposta = json.dumps(lista, default=str)
+
+                elif acao == 'pagar':
+                    resultado = registrar_pagamento(
+                        int(dados.get('id_consulta')),
+                        float(dados.get('valor', 150.00)),
+                        dados.get('forma_pagamento', 'Particular')
+                    )
+                    resposta = json.dumps(resultado)
+                    
+                elif acao == 'cancelar':
+                    id_paciente = dados.get('id_paciente')
+                    resultado = cancelar_consulta(
+                        int(dados.get('id_consulta')),
+                        int(id_paciente) if id_paciente else None
+                    )
+                    resposta = json.dumps(resultado)
 
                 else:
                      resposta = "ERRO: Ação desconhecida"
@@ -244,6 +354,8 @@ def listar_agendamentos_medico(id_medico):
     finally:
         cursor.close()
         conn.close()
+
+
 
 # --- BLOCO PRINCIPAL BLINDADO ---
 if __name__ == "__main__":

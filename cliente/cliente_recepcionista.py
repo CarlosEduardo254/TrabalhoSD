@@ -7,14 +7,14 @@ API_AGENDAMENTO = "http://localhost:8081"
 
 def menu_principal():
     while True:
-        print("\n=== SYSTEM HOSPITALAR: PACIENTE ===")
+        print("\n=== SYSTEM HOSPITALAR: RECEPCIONISTA ===")
         print("1. Cadastrar")
         print("2. Login")
         print("0. Sair")
         opcao = input("Opção: ")
 
         if opcao == '1':
-            cadastrar_paciente()
+            cadastrar_recepcionista()
         elif opcao == '2':
             fazer_login()
         elif opcao == '0':
@@ -22,21 +22,19 @@ def menu_principal():
         else:
             print("Opção inválida.")
 
-def cadastrar_paciente():
-    print("\n--- Cadastro de Paciente ---")
+def cadastrar_recepcionista():
+    print("\n--- Cadastro de Recepcionista ---")
     nome = input("Nome Completo: ")
     email = input("E-mail: ")
     senha = input("Senha: ")
     telefone = input("Telefone: ")
-    problema = input("Problema/Sintoma: ")
     
     payload = {
-        "tipo": "paciente",
+        "tipo": "recepcionista",
         "nome": nome,
         "email": email,
         "senha": senha,
-        "telefone": telefone,
-        "info_extra": problema
+        "telefone": telefone
     }
     
     try:
@@ -53,7 +51,7 @@ def cadastrar_paciente():
         print(f"Erro de conexão: {e}")
 
 def fazer_login():
-    print("\n--- Login ---")
+    print("\n--- Login Recepcionista ---")
     email = input("E-mail: ")
     senha = input("Senha: ")
     
@@ -63,66 +61,107 @@ def fazer_login():
         resp = requests.post(f"{API_USUARIOS}/login", json=payload)
         if resp.status_code == 200:
             dados = resp.json()
-            if dados.get("perfil") == "paciente":
+            if dados.get("perfil") == "recepcionista":
                 menu_area_logada(dados)
             else:
-                print("Login Negado: Este painel é apenas para PACIENTES.")
+                print("Login Negado: Este painel é apenas para RECEPCIONISTAS.")
         else:
             print(f"Login falhou: {resp.json()}")
     except Exception as e:
         print(f"Erro de conexão: {e}")
 
 def menu_area_logada(dados_usuario):
-    print(f"\nBem-vindo, {dados_usuario['nome']}!")
-    id_paciente = dados_usuario['id']
+    print(f"\nBem-vindo(a), {dados_usuario['nome']}!")
+    id_recep = dados_usuario['id']
     
     while True:
-        print("\n--- Menu Paciente ---")
-        print("1. Agendar Consulta")
-        print("2. Atualizar Dados Cadastrais")
-        print("3. Ver Minhas Consultas")
+        print("\n--- Painel Recepcionista ---")
+        print("1. Ver Agendamentos do Médico")
+        print("2. Agendar Consulta para Paciente")
+        print("3. Registrar Pagamento")
         print("4. Cancelar Consulta")
-        print("5. Pagar Consulta Pendente")
+        print("5. Atualizar Dados Cadastrais")
         print("6. Excluir Conta")
         print("0. Logout")
         
         opcao = input("Opção: ")
         
         if opcao == '1':
-            agendar(id_paciente)
+            ver_agendamentos()
         elif opcao == '2':
-            atualizar_dados(id_paciente)
+            agendar_para_paciente()
         elif opcao == '3':
-            ver_minhas_consultas(id_paciente)
+            registrar_pagamento_recep()
         elif opcao == '4':
-            cancelar_consulta(id_paciente)
+            cancelar_consulta_recep()
         elif opcao == '5':
-            pagar_consulta(id_paciente)
+            atualizar_dados(id_recep)
         elif opcao == '6':
-            if excluir_conta(id_paciente):
+            if excluir_conta(id_recep):
                 return
         elif opcao == '0':
             return
         else:
             print("Opção inválida.")
 
-def atualizar_dados(id_paciente):
+def ver_agendamentos():
+    print("\n--- Agendamentos ---")
+    id_medico = input("ID do Médico: ")
+
+    if not id_medico:
+        print("ID do médico é obrigatório.")
+        return
+    
+    try:
+        resp = requests.post(f"{API_AGENDAMENTO}/listar_agenda", json={"id_medico": int(id_medico)})
+        
+        if resp.status_code == 200:
+            agendamentos = resp.json()
+            if not agendamentos:
+                print("Nenhum agendamento encontrado.")
+            else:
+                for ag in agendamentos:
+                    print(f"- [{ag.get('data_consulta')} às {ag.get('horario_consulta')}] Paciente: {ag.get('nome_paciente', 'N/A')} - Status: {ag.get('status')}")
+        else:
+            print(f"Erro: {resp.text}")
+    except Exception as e:
+        print(f"Erro de conexão: {e}")
+
+def agendar_para_paciente():
+    print("\n--- Agendar Consulta ---")
+    id_paciente = input("ID do Paciente: ")
+    id_medico = input("ID do Médico: ")
+    data = input("Data (AAAA-MM-DD): ")
+    horario = input("Horário (HH:MM:SS): ")
+    
+    payload = {
+        "id_paciente": id_paciente,
+        "id_medico": id_medico,
+        "data": data,
+        "horario": horario
+    }
+    
+    try:
+        resp = requests.post(f"{API_AGENDAMENTO}/agendar", json=payload)
+        print("Resposta:", resp.json())
+    except Exception as e:
+        print(f"Erro de conexão: {e}")
+
+def atualizar_dados(id_recep):
     print("\n--- Atualizar Dados Cadastrais ---")
     print("Deixe em branco para manter o valor atual")
     nome = input("Novo Nome: ")
     email = input("Novo E-mail: ")
     senha = input("Nova Senha: ")
     telefone = input("Novo Telefone: ")
-    problema = input("Novo Problema/Sintoma: ")
     
     payload = {
-        "id": id_paciente,
-        "tipo": "paciente",
+        "id": id_recep,
+        "tipo": "recepcionista",
         "nome": nome,
         "email": email,
         "senha": senha,
-        "telefone": telefone,
-        "info_extra": problema
+        "telefone": telefone
     }
     
     try:
@@ -138,10 +177,32 @@ def atualizar_dados(id_paciente):
     except Exception as e:
         print(f"Erro de conexão: {e}")
 
-
-def pagar_consulta(id_paciente):
-    print("\n--- Pagar Consulta Pendente ---")
-    ver_minhas_consultas(id_paciente)
+def registrar_pagamento_recep():
+    print("\n--- Registrar Pagamento ---")
+    
+    # Primeiro mostra as consultas de um médico
+    id_medico = input("ID do Médico para ver consultas pendentes: ")
+    if not id_medico:
+        print("ID do médico é obrigatório.")
+        return
+    
+    try:
+        resp = requests.post(f"{API_AGENDAMENTO}/listar_agenda", json={"id_medico": int(id_medico)})
+        if resp.status_code == 200:
+            consultas = resp.json()
+            pendentes = [c for c in consultas if c.get('status') == 'PENDENTE']
+            if not pendentes:
+                print("Nenhuma consulta pendente encontrada.")
+                return
+            print("\n--- Consultas Pendentes ---")
+            for c in pendentes:
+                print(f"[ID: {c.get('id_consulta')}] {c['data_consulta']} às {c['horario_consulta']} - Paciente: {c['nome_paciente']}")
+        else:
+            print(f"Erro: {resp.text}")
+            return
+    except Exception as e:
+        print(f"Erro de conexão: {e}")
+        return
     
     id_consulta = input("\nID da consulta a pagar (0 para voltar): ")
     if id_consulta == '0':
@@ -155,7 +216,7 @@ def pagar_consulta(id_paciente):
     
     opcao_pagamento = input("Escolha: ")
     formas = {'1': 'Dinheiro', '2': 'Cartão de Crédito', '3': 'Cartão de Débito', '4': 'PIX'}
-    forma = formas.get(opcao_pagamento, 'Particular')
+    forma = formas.get(opcao_pagamento, 'Dinheiro')
     
     valor = input("Valor da consulta (ex: 150.00): ")
     if not valor:
@@ -172,7 +233,7 @@ def pagar_consulta(id_paciente):
         if resp.status_code == 200:
             dados = resp.json()
             if dados.get('sucesso'):
-                print("Pagamento realizado com sucesso! Consulta confirmada.")
+                print("Pagamento registrado com sucesso! Consulta confirmada.")
             else:
                 print(f"Falha: {dados.get('mensagem')}")
         else:
@@ -180,8 +241,7 @@ def pagar_consulta(id_paciente):
     except Exception as e:
         print(f"Erro de conexão: {e}")
 
-
-def excluir_conta(id_paciente):
+def excluir_conta(id_recep):
     print("\n--- Excluir Conta ---")
     confirmacao = input("Tem certeza que deseja excluir sua conta? (s/n): ")
     
@@ -190,8 +250,8 @@ def excluir_conta(id_paciente):
         return False
     
     payload = {
-        "id": id_paciente,
-        "tipo": "paciente"
+        "id": id_recep,
+        "tipo": "recepcionista"
     }
     
     try:
@@ -209,46 +269,33 @@ def excluir_conta(id_paciente):
         print(f"Erro de conexão: {e}")
     return False
 
-def agendar(id_paciente):
-    print("\n--- Agendar Consulta ---")
-    id_medico = input("ID do Médico (ex: 1): ")
-    data = input("Data (AAAA-MM-DD): ")
-    horario = input("Horário (HH:MM:SS): ")
+def cancelar_consulta_recep():
+    print("\n--- Cancelar Consulta ---")
     
-    payload = {
-        "id_paciente": id_paciente,
-        "id_medico": id_medico,
-        "data": data,
-        "horario": horario
-    }
+    # Recepcionista pode ver a agenda de qualquer médico primeiro
+    id_medico = input("ID do Médico para ver consultas: ")
+    
+    if not id_medico:
+        print("ID do médico é obrigatório.")
+        return
     
     try:
-        # Chama a interface de agendamento (Porta 8081)
-        resp = requests.post(f"{API_AGENDAMENTO}/agendar", json=payload)
-        print("Resposta do Servidor:", resp.json())
-    except Exception as e:
-        print(f"Erro de conexão com Agendamento: {e}")
-
-def ver_minhas_consultas(id_paciente):
-    print("\n--- Minhas Consultas ---")
-    
-    try:
-        resp = requests.post(f"{API_AGENDAMENTO}/listar_meus_agendamentos", json={"id_paciente": id_paciente})
+        resp = requests.post(f"{API_AGENDAMENTO}/listar_agenda", json={"id_medico": int(id_medico)})
         if resp.status_code == 200:
             consultas = resp.json()
             if not consultas:
-                print("Nenhuma consulta encontrada.")
+                print("Nenhuma consulta encontrada para este médico.")
+                return
             else:
+                print("\n--- Consultas do Médico ---")
                 for c in consultas:
-                    print(f"[ID: {c['id_consulta']}] {c['data_consulta']} às {c['horario_consulta']} - Dr(a). {c['nome_medico']} ({c['status']})")
+                    print(f"[ID: {c.get('id_consulta', 'N/A')}] {c['data_consulta']} às {c['horario_consulta']} - Paciente: {c['nome_paciente']} ({c['status']})")
         else:
             print(f"Erro: {resp.text}")
+            return
     except Exception as e:
         print(f"Erro de conexão: {e}")
-
-def cancelar_consulta(id_paciente):
-    print("\n--- Cancelar Consulta ---")
-    ver_minhas_consultas(id_paciente)  # Mostra as consultas primeiro
+        return
     
     id_consulta = input("\nID da consulta a cancelar (0 para voltar): ")
     if id_consulta == '0':
@@ -259,10 +306,8 @@ def cancelar_consulta(id_paciente):
         print("Operação cancelada.")
         return
     
-    payload = {
-        "id_consulta": int(id_consulta),
-        "id_paciente": id_paciente
-    }
+    # Recepcionista não passa id_paciente - pode cancelar qualquer uma
+    payload = {"id_consulta": int(id_consulta)}
     
     try:
         resp = requests.delete(f"{API_AGENDAMENTO}/cancelar_agendamento", json=payload)

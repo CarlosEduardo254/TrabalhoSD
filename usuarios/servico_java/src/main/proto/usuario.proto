@@ -8,6 +8,9 @@ service UsuarioService {
   rpc CriarUsuario (UsuarioRequest) returns (UsuarioResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc VerificarUsuario (VerificarUsuarioRequest) returns (VerificarUsuarioResponse);
+  rpc AtualizarUsuario (AtualizarUsuarioRequest) returns (UsuarioResponse);
+  rpc DeletarUsuario (DeletarUsuarioRequest) returns (UsuarioResponse);
+  rpc ListarUsuarios (ListarUsuariosRequest) returns (ListarUsuariosResponse);
 }
 
 // Requisição para criar usuário (qualquer tipo)
@@ -48,4 +51,34 @@ message VerificarUsuarioRequest {
 
 message VerificarUsuarioResponse {
   bool existe = 1;
+}
+
+message AtualizarUsuarioRequest {
+  int32 id = 1;
+  string tipo = 2;
+  string nome = 3;
+  string telefone = 4;
+  string email = 5;
+  string senha = 6;
+  string info_extra = 7;
+}
+
+message DeletarUsuarioRequest {
+  int32 id = 1;
+  string tipo = 2;
+}
+
+message ListarUsuariosRequest {
+  string tipo = 1; // "paciente", "medico", "todos"
+}
+message UsuarioInfo {
+  int32 id = 1;
+  string nome = 2;
+  string email = 3;
+  string telefone = 4;
+  string tipo = 5;
+  string info_extra = 6;
+}
+message ListarUsuariosResponse {
+  repeated UsuarioInfo usuarios = 1;
 }

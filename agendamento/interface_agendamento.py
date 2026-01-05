@@ -92,6 +92,52 @@ def rota_listar_agenda():
         # Se deu erro ou retornou texto puro
         return jsonify({"erro": resposta_servico})
 
+
+@app.route('/listar_meus_agendamentos', methods=['POST'])
+def rota_listar_meus_agendamentos():
+    dados = request.json
+    if not dados or 'id_paciente' not in dados:
+        return jsonify({"erro": "ID do paciente obrigatório"}), 400
+    
+    dados['acao'] = 'listar_paciente'
+    resposta_servico = enviar_socket(dados)
+    
+    try:
+        lista = json.loads(resposta_servico)
+        return jsonify(lista)
+    except:
+        return jsonify({"erro": resposta_servico})
+
+@app.route('/cancelar_agendamento', methods=['DELETE'])
+def rota_cancelar_agendamento():
+    dados = request.json
+    if not dados or 'id_consulta' not in dados:
+        return jsonify({"erro": "ID da consulta obrigatório"}), 400
+    
+    dados['acao'] = 'cancelar'
+    resposta_servico = enviar_socket(dados)
+    
+    try:
+        resultado = json.loads(resposta_servico)
+        return jsonify(resultado)
+    except:
+        return jsonify({"erro": resposta_servico})
+
+@app.route('/pagar_consulta', methods=['POST'])
+def rota_pagar_consulta():
+    dados = request.json
+    if not dados or 'id_consulta' not in dados:
+        return jsonify({"erro": "ID da consulta obrigatório"}), 400
+    
+    dados['acao'] = 'pagar'
+    resposta_servico = enviar_socket(dados)
+    
+    try:
+        resultado = json.loads(resposta_servico)
+        return jsonify(resultado)
+    except:
+        return jsonify({"erro": resposta_servico})
+
 if __name__ == '__main__':
     # Roda o servidor web na porta 8081
     app.run(host='0.0.0.0', port=8081, debug=True)

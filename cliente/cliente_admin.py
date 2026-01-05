@@ -7,14 +7,14 @@ API_AGENDAMENTO = "http://localhost:8081"
 
 def menu_principal():
     while True:
-        print("\n=== SYSTEM HOSPITALAR: MÉDICO ===")
+        print("\n=== SYSTEM HOSPITALAR: ADMINISTRADOR ===")
         print("1. Cadastrar")
         print("2. Login")
         print("0. Sair")
         opcao = input("Opção: ")
 
         if opcao == '1':
-            cadastrar_medico()
+            cadastrar_admin()
         elif opcao == '2':
             fazer_login()
         elif opcao == '0':
@@ -22,21 +22,19 @@ def menu_principal():
         else:
             print("Opção inválida.")
 
-def cadastrar_medico():
-    print("\n--- Cadastro de Médico ---")
+def cadastrar_admin():
+    print("\n--- Cadastro de Administrador ---")
     nome = input("Nome Completo: ")
     email = input("E-mail: ")
     senha = input("Senha: ")
     telefone = input("Telefone: ")
-    crm = input("CRM: ")
     
     payload = {
-        "tipo": "medico",
+        "tipo": "admin",
         "nome": nome,
         "email": email,
         "senha": senha,
-        "telefone": telefone,
-        "info_extra": crm # No backend, info_extra é usado como CRM para médicos
+        "telefone": telefone
     }
     
     try:
@@ -53,7 +51,7 @@ def cadastrar_medico():
         print(f"Erro de conexão: {e}")
 
 def fazer_login():
-    print("\n--- Login Médico ---")
+    print("\n--- Login Administrador ---")
     email = input("E-mail: ")
     senha = input("Senha: ")
     
@@ -63,71 +61,85 @@ def fazer_login():
         resp = requests.post(f"{API_USUARIOS}/login", json=payload)
         if resp.status_code == 200:
             dados = resp.json()
-            if dados.get("perfil") == "medico":
+            if dados.get("perfil") == "administradores":
                 menu_area_logada(dados)
             else:
-                print("Login Negado: Este painel é apenas para MÉDICOS.")
+                print("Login Negado: Este painel é apenas para ADMINISTRADORES.")
         else:
             print(f"Login falhou: {resp.json()}")
     except Exception as e:
         print(f"Erro de conexão: {e}")
 
 def menu_area_logada(dados_usuario):
-    print(f"\nBem-vindo, Dr(a). {dados_usuario['nome']}!")
-    id_medico = dados_usuario['id']
+    print(f"\nBem-vindo(a), Admin {dados_usuario['nome']}!")
+    id_admin = dados_usuario['id']
     
     while True:
-        print("\n--- Painel Médico ---")
-        print("1. Ver Minha Agenda")
-        print("2. Atualizar Dados Cadastrais")
-        print("3. Excluir Conta")
+        print("\n--- Painel Administrador ---")
+        print("1. Listar Todos os Pacientes")
+        print("2. Listar Todos os Médicos")
+        print("3. Listar Todos os Usuários")
+        print("4. Atualizar Dados Cadastrais")
+        print("5. Excluir Conta")
         print("0. Logout")
         
         opcao = input("Opção: ")
         
         if opcao == '1':
-            try:
-                resp = requests.post(f"{API_AGENDAMENTO}/listar_agenda", json={"id_medico": id_medico})
-
-                if resp.status_code == 200:
-                    agendamentos = resp.json()
-                    print("\n--- Agenda do Médico ---")
-                    if not agendamentos:
-                        print("Nenhum agendamento encontrado.")
-                    else:
-                        for agendamento in agendamentos:
-                            print(f"- [{agendamento['data_consulta']} as {agendamento['horario_consulta']}] {agendamento['nome_paciente']} ({agendamento['status']})")
-                else:
-                    print(f"Erro ao buscar agenda: {resp.text}")
-            except Exception as e:
-                print(f"Erro de conexão: {e}")
+            listar_usuarios("paciente")
         elif opcao == '2':
-            atualizar_dados(id_medico)
+            listar_usuarios("medico")
         elif opcao == '3':
-            if excluir_conta(id_medico):
+            listar_usuarios("todos")
+        elif opcao == '4':
+            atualizar_dados(id_admin)
+        elif opcao == '5':
+            if excluir_conta(id_admin):
                 return
         elif opcao == '0':
             return
         else:
             print("Opção inválida.")
 
-def atualizar_dados(id_medico):
+def listar_usuarios(tipo):
+    print(f"\n--- Lista de Usuários ({tipo.upper()}) ---")
+    
+    try:
+        resp = requests.post(f"{API_USUARIOS}/listar_usuarios", json={"tipo": tipo})
+        if resp.status_code == 200:
+            usuarios = resp.json()
+            if not usuarios:
+                print("Nenhum usuário encontrado.")
+            else:
+                print(f"{'ID':<5} {'TIPO':<12} {'NOME':<25} {'EMAIL':<25} {'TELEFONE':<15} {'INFO EXTRA'}")
+                print("-" * 100)
+                for u in usuarios:
+                    info = u.get('info_extra', '')
+                    if u['tipo'] == 'medico':
+                        info = f"CRM: {info}"
+                    elif u['tipo'] == 'paciente':
+                        info = f"Problema: {info}"
+                    print(f"{u['id']:<5} {u['tipo']:<12} {u['nome']:<25} {u['email']:<25} {u['telefone']:<15} {info}")
+        else:
+            print(f"Erro: {resp.text}")
+    except Exception as e:
+        print(f"Erro de conexão: {e}")
+
+def atualizar_dados(id_admin):
     print("\n--- Atualizar Dados Cadastrais ---")
     print("Deixe em branco para manter o valor atual")
     nome = input("Novo Nome: ")
     email = input("Novo E-mail: ")
     senha = input("Nova Senha: ")
     telefone = input("Novo Telefone: ")
-    crm = input("Novo CRM: ")
     
     payload = {
-        "id": id_medico,
-        "tipo": "medico",
+        "id": id_admin,
+        "tipo": "admin",
         "nome": nome,
         "email": email,
         "senha": senha,
-        "telefone": telefone,
-        "info_extra": crm
+        "telefone": telefone
     }
     
     try:
@@ -143,7 +155,7 @@ def atualizar_dados(id_medico):
     except Exception as e:
         print(f"Erro de conexão: {e}")
 
-def excluir_conta(id_medico):
+def excluir_conta(id_admin):
     print("\n--- Excluir Conta ---")
     confirmacao = input("Tem certeza que deseja excluir sua conta? (s/n): ")
     
@@ -152,8 +164,8 @@ def excluir_conta(id_medico):
         return False
     
     payload = {
-        "id": id_medico,
-        "tipo": "medico"
+        "id": id_admin,
+        "tipo": "admin"
     }
     
     try:
@@ -170,7 +182,6 @@ def excluir_conta(id_medico):
     except Exception as e:
         print(f"Erro de conexão: {e}")
     return False
-
 
 if __name__ == "__main__":
     menu_principal()
