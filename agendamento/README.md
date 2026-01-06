@@ -2,7 +2,7 @@
 
 Serviço responsável pelo gerenciamento de consultas médicas, incluindo agendamento, cancelamento e pagamentos.
 
-## 🎯 Função
+## Função
 
 Orquestra o fluxo completo de agendamento de consultas:
 1. Verifica existência do paciente via **gRPC** (Serviço de Usuários)
@@ -30,7 +30,7 @@ Orquestra o fluxo completo de agendamento de consultas:
 └─────────────────┘                      
 ```
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 agendamento/
@@ -41,7 +41,7 @@ agendamento/
 └── usuario_pb2*.py             # Stubs gRPC gerados
 ```
 
-## 🔌 Endpoints REST (Interface)
+## Endpoints REST (Interface)
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
@@ -51,7 +51,7 @@ agendamento/
 | DELETE | `/cancelar_agendamento` | Cancelar consulta |
 | POST | `/pagar_consulta` | Registrar pagamento |
 
-## 📨 Ações do Socket
+## Ações do Socket
 
 O serviço Socket aceita JSON com campo `acao`:
 
@@ -63,7 +63,7 @@ O serviço Socket aceita JSON com campo `acao`:
 | `cancelar` | Cancelar consulta |
 | `pagar` | Registrar pagamento |
 
-## 🐳 Docker
+## Docker
 
 ```yaml
 servico-agendamento:
@@ -80,7 +80,7 @@ servico-agendamento:
     - servico-adapter
 ```
 
-## 🔗 Dependências
+## Dependências
 
 - **Python 3.11**
 - **MySQL** (banco de dados)
