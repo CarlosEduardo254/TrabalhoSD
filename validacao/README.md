@@ -2,7 +2,7 @@
 
 Serviço Java RMI que valida convênios médicos, simulando a comunicação com uma operadora de plano de saúde. Inclui também o **Adapter HTTP** que permite que serviços Python acessem o RMI.
 
-## 🎯 Função
+## Função
 
 Valida se o convênio do paciente é aceito, permitindo que a consulta seja confirmada automaticamente.
 
@@ -19,7 +19,7 @@ Valida se o convênio do paciente é aceito, permitindo que a consulta seja conf
                                                                     └─────────────────┘
 ```
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 validacao/
@@ -32,7 +32,7 @@ validacao/
     └── ClienteRMI.java     # Cliente que conecta ao servidor RMI
 ```
 
-## 🔧 Componentes
+## Componentes
 
 ### 1. Serviço de Validação (servico-validacao)
 - **Tecnologia**: Java RMI
@@ -46,7 +46,7 @@ validacao/
 
 O adapter é necessário porque **Python não fala RMI nativamente**. Ele usa Flask para expor uma API HTTP e internamente chama o `ClienteRMI.java` para fazer a comunicação RMI.
 
-## 🔌 Endpoint REST (Adapter)
+## Endpoint REST (Adapter)
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
@@ -66,14 +66,14 @@ O adapter é necessário porque **Python não fala RMI nativamente**. Ele usa Fl
 }
 ```
 
-## 📋 Regra de Validação
+## Regra de Validação
 
 | Último Dígito | Resultado |
 |---------------|-----------|
 | Par (0, 2, 4, 6, 8) | ✅ APROVADO |
 | Ímpar (1, 3, 5, 7, 9) | ❌ REPROVADO |
 
-## 🐳 Docker
+## Docker
 
 ```yaml
 # Servidor RMI
@@ -95,7 +95,7 @@ servico-adapter:
     - servico-validacao
 ```
 
-## 🔗 Dependências
+## Dependências
 
 - **Java 21** (Eclipse Temurin)
 - **Python 3.9** (Flask)
