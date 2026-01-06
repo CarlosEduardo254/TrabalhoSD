@@ -137,7 +137,7 @@ if __name__ == "__main__":
     elif acao == "listar_recepcionistas":
         listar_usuarios("recepcionista")
     elif acao == "listar_admins":
-        listar_usuarios("admin")
+        listar_usuarios("administradores")
     elif acao == "listar_todos":
         listar_usuarios("todos")
     elif acao == "atualizar" and len(args) == 5:

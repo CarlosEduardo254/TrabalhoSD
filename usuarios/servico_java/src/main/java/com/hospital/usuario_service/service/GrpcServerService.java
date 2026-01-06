@@ -68,7 +68,7 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
                 if (affectedRows > 0) {
                     sucesso = true;
                     mensagem = "Cadastro de " + tipo + " realizado com sucesso";
-                    
+
                     // Captura o ID gerado
                     try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
@@ -353,7 +353,6 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
         responseObserver.onCompleted();
     }
 
-
     @Override
     public void listarUsuarios(ListarUsuariosRequest request, StreamObserver<ListarUsuariosResponse> responseObserver) {
         String tipoFiltro = request.getTipo().toLowerCase();
@@ -364,7 +363,7 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
             if (tipoFiltro.equals("paciente") || tipoFiltro.equals("todos")) {
                 String sql = "SELECT id_usuario, nome, email, telefone, problema FROM paciente";
                 try (PreparedStatement pstmt = conn.prepareStatement(sql);
-                    ResultSet rs = pstmt.executeQuery()) {
+                        ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         UsuarioInfo usuario = UsuarioInfo.newBuilder()
                                 .setId(rs.getInt("id_usuario"))
@@ -383,7 +382,7 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
             if (tipoFiltro.equals("medico") || tipoFiltro.equals("todos")) {
                 String sql = "SELECT id_med, nome_med, email, telefone, crm FROM medico";
                 try (PreparedStatement pstmt = conn.prepareStatement(sql);
-                    ResultSet rs = pstmt.executeQuery()) {
+                        ResultSet rs = pstmt.executeQuery()) {
                     while (rs.next()) {
                         UsuarioInfo usuario = UsuarioInfo.newBuilder()
                                 .setId(rs.getInt("id_med"))
@@ -392,6 +391,44 @@ public class GrpcServerService extends UsuarioServiceGrpc.UsuarioServiceImplBase
                                 .setTelefone(rs.getString("telefone"))
                                 .setTipo("medico")
                                 .setInfoExtra(rs.getString("crm") != null ? rs.getString("crm") : "")
+                                .build();
+                        responseBuilder.addUsuarios(usuario);
+                    }
+                }
+            }
+
+            // Lista recepcionistas
+            if (tipoFiltro.equals("recepcionista") || tipoFiltro.equals("todos")) {
+                String sql = "SELECT id_recep, nome, email, telefone FROM recepcionista";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                        ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        UsuarioInfo usuario = UsuarioInfo.newBuilder()
+                                .setId(rs.getInt("id_recep"))
+                                .setNome(rs.getString("nome"))
+                                .setEmail(rs.getString("email"))
+                                .setTelefone(rs.getString("telefone"))
+                                .setTipo("recepcionista")
+                                .setInfoExtra("")
+                                .build();
+                        responseBuilder.addUsuarios(usuario);
+                    }
+                }
+            }
+
+            // Lista administradores
+            if (tipoFiltro.equals("admin") || tipoFiltro.equals("administradores") || tipoFiltro.equals("todos")) {
+                String sql = "SELECT id_adm, nome, email, telefone FROM administradores";
+                try (PreparedStatement pstmt = conn.prepareStatement(sql);
+                        ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        UsuarioInfo usuario = UsuarioInfo.newBuilder()
+                                .setId(rs.getInt("id_adm"))
+                                .setNome(rs.getString("nome"))
+                                .setEmail(rs.getString("email"))
+                                .setTelefone(rs.getString("telefone"))
+                                .setTipo("admin")
+                                .setInfoExtra("")
                                 .build();
                         responseBuilder.addUsuarios(usuario);
                     }
