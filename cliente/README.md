@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 INICIALIZAÇÃO DO SISTEMA
+## INICIALIZAÇÃO DO SISTEMA
 
 | AÇÃO | COMANDO | DESCRIÇÃO |
 |------|---------|-----------|
@@ -15,14 +15,14 @@
 | Ver logs | `docker-compose logs -f` | Mostra logs em tempo real |
 | Ver status | `docker-compose ps` | Lista containers em execução |
 
-### ⚠️ Importante
+### Importante
 - Execute os comandos Docker na **raiz do projeto** (onde está o `docker-compose.yaml`)
 - Aguarde todos os serviços ficarem "healthy" antes de executar os scripts cliente
 - O banco de dados é recriado automaticamente ao subir os serviços
 
 ---
 
-## 📋 PACIENTE (paciente.py)
+## PACIENTE (paciente.py)
 
 | AÇÃO | SCRIPT | COMO EXECUTAR? |
 |------|--------|----------------|
@@ -39,7 +39,7 @@
 
 ---
 
-## 👨‍⚕️ MÉDICO (medico.py)
+## MÉDICO (medico.py)
 
 | AÇÃO | SCRIPT | COMO EXECUTAR? |
 |------|--------|----------------|
@@ -51,7 +51,7 @@
 
 ---
 
-## 🔧 ADMINISTRADOR (admin.py)
+## ADMINISTRADOR (admin.py)
 
 | AÇÃO | SCRIPT | COMO EXECUTAR? |
 |------|--------|----------------|
@@ -67,7 +67,7 @@
 
 ---
 
-## 💼 RECEPCIONISTA (recepcionista.py)
+## RECEPCIONISTA (recepcionista.py)
 
 | AÇÃO | SCRIPT | COMO EXECUTAR? |
 |------|--------|----------------|
@@ -85,7 +85,7 @@
 
 ---
 
-## 📝 Script de Cadastro Automático
+## Script de Cadastro Automático
 
 | AÇÃO | SCRIPT | COMO EXECUTAR? |
 |------|--------|----------------|
@@ -101,7 +101,7 @@ Este script cadastra automaticamente:
 
 ---
 
-## 🏥 Tipos de Consulta
+## Tipos de Consulta
 
 | Tipo | Descrição | Status Inicial |
 |------|-----------|----------------|
@@ -110,7 +110,7 @@ Este script cadastra automaticamente:
 
 ---
 
-## 🔗 Formas de Pagamento Aceitas
+## Formas de Pagamento Aceitas
 
 - `Dinheiro`
 - `PIX`
@@ -119,7 +119,7 @@ Este script cadastra automaticamente:
 
 ---
 
-## 📌 Observações
+## Observações
 
 1. **Formato de Data**: AAAA-MM-DD (ex: 2026-01-15)
 2. **Formato de Horário**: HH:MM:SS (ex: 09:00:00)
