@@ -2,18 +2,18 @@
 
 Script SQL de inicialização do banco de dados MySQL para o sistema hospitalar.
 
-## 🎯 Função
+## Função
 
 Define a estrutura do banco de dados `hospital_db` com todas as tabelas necessárias para o sistema.
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 database/
 └── SD.sql    # Script de criação das tabelas
 ```
 
-## 📊 Tabelas
+## Tabelas
 
 | Tabela | Descrição | Chave Primária |
 |--------|-----------|----------------|
@@ -24,7 +24,7 @@ database/
 | `consulta` | Agendamentos de consultas | `id_consulta` |
 | `pagamento` | Registro de pagamentos | `id_pagamento` |
 
-## 🔗 Relacionamentos
+## Relacionamentos
 
 ```
 paciente ◄───────┐
@@ -39,7 +39,7 @@ medico ◄────┐    │
         pagamento
 ```
 
-## 🐳 Docker
+## Docker
 
 O script é executado automaticamente na inicialização do container MySQL:
 
@@ -55,7 +55,7 @@ db:
     - ./database/SD.sql:/docker-entrypoint-initdb.d/init.sql
 ```
 
-## ⚠️ Observação
+## Observação
 
 O banco é **recriado a cada reinício** dos containers. Para limpar completamente:
 ```powershell
