@@ -2,14 +2,14 @@
 
 Este projeto implementa um sistema de gerenciamento hospitalar distribuído utilizando microsserviços, desenvolvido para a disciplina de Sistemas Distribuídos 2025.2.
 
-## 🚀 Tecnologias
+## Tecnologias
 
 - **Backend**: Python (Flask, gRPC), Java (Spring Boot, gRPC, RMI)
 - **Mensageria**: RabbitMQ
 - **Banco de Dados**: MySQL
 - **Containerização**: Docker & Docker Compose
 
-## 🏛️ Arquitetura do Sistema
+## Arquitetura do Sistema
 
 O sistema é composto por diversos microsserviços que se comunicam utilizando diferentes protocolos de redes, demonstrando a interoperabilidade entre tecnologias.
 
@@ -57,13 +57,13 @@ O sistema é composto por diversos microsserviços que se comunicam utilizando d
 
 ---
 
-## 📋 Pré-requisitos
+## Pré-requisitos
 
 - Docker e Docker Compose instalados
 - Python 3.9+ (para rodar os clientes de teste)
 - `requests` (biblioteca Python para os clientes)
 
-## 🛠️ Como Executar
+## Como Executar
 
 ### 1. Subir os Serviços
 
@@ -96,7 +96,7 @@ docker-compose up --build
 
 ---
 
-## 🧪 Scripts Cliente
+## Scripts Cliente
 
 Os scripts cliente estão na pasta `cliente/`. Existem dois tipos:
 
@@ -130,7 +130,7 @@ Scripts com interface de menu interativo:
 
 ---
 
-## 📝 Exemplos de Uso (Scripts CLI)
+## Exemplos de Uso (Scripts CLI)
 
 ### Configurar Ambiente
 ```powershell
@@ -199,7 +199,7 @@ python admin.py listar_todos
 
 ---
 
-## 🏥 Tipos de Consulta e Pagamento
+## Tipos de Consulta e Pagamento
 
 ### Tipos de Consulta
 
@@ -219,7 +219,7 @@ python admin.py listar_todos
 
 ---
 
-## 🔍 Solução de Problemas
+## Solução de Problemas
 
 | Erro | Causa | Solução |
 |------|-------|---------|
@@ -230,7 +230,7 @@ python admin.py listar_todos
 
 ---
 
-## 📌 Observações
+## Observações
 
 1. **Formato de Data**: AAAA-MM-DD (ex: 2026-01-15)
 2. **Formato de Horário**: HH:MM:SS (ex: 09:00:00)
@@ -241,7 +241,7 @@ python admin.py listar_todos
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 TrabalhoSD/
