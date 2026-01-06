@@ -2,7 +2,12 @@
 
 Este componente implementa uma **ponte (bridge)** entre protocolos Socket TCP e Java RMI, permitindo que serviços Python se comuniquem com o servidor Java RMI de validação de convênios.
 
-## 🎯 Função
+> Observação: A implementação atual do sistema usa o `servico-adapter` definido em `validacao/Dockerfile.adapter`, que expõe uma interface HTTP na porta 8084. Este código representa uma abordagem alternativa usando Socket puro.
+
+---
+
+
+## Função
 
 Resolve a incompatibilidade de protocolos entre Python e Java RMI:
 - **Entrada**: Recebe conexões Socket TCP (porta 7000) com dados em JSON
@@ -16,7 +21,7 @@ Resolve a incompatibilidade de protocolos entre Python e Java RMI:
 └─────────────────┘     JSON Response    └─────────────────┘   boolean      └─────────────────┘
 ```
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 adapter/
@@ -26,7 +31,7 @@ adapter/
     └── IValidador.java     # Interface RMI (compartilhada com validação)
 ```
 
-## 🔧 Como Funciona
+## Como Funciona
 
 1. **Inicialização**: O `BridgeServer` aguarda o serviço RMI (`servico_validacao`) estar disponível
 2. **Conexão RMI**: Conecta no registry RMI na porta 1099 e obtém o stub `ValidadorService`
@@ -37,7 +42,7 @@ adapter/
    - Chama `validador.validarConvenio(numeroCartao)` via RMI
    - Retorna JSON: `{"aprovado": true}` ou `{"aprovado": false}`
 
-## 📨 Protocolo de Comunicação
+## Protocolo de Comunicação
 
 ### Request (Python → Adapter)
 ```json
@@ -52,7 +57,3 @@ adapter/
 ### Regra de Validação
 - **ID par**: Convênio aprovado (`true`)
 - **ID ímpar**: Convênio rejeitado (`false`)
-
-## 📝 Observação
-
-A implementação atual do sistema usa o `servico-adapter` definido em `validacao/Dockerfile.adapter`, que expõe uma interface HTTP na porta 8084. Este código representa uma abordagem alternativa usando Socket puro.
