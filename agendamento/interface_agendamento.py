@@ -2,16 +2,17 @@ from flask import Flask, request, jsonify # Flask cria o servidor web
 import socket
 import json
 import pika
+import os
 
 app = Flask(__name__) # Inicializa o app Flask
 
 #Função que envia uma mensagem para o RabbitMQ
 def enviar_notificacao_fila(texto_msg):
     try:
-        # Conexão com o RabbitMQ
         credentials = pika.PlainCredentials('user', 'password')
+        rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost', port=5672, credentials=credentials)
+            pika.ConnectionParameters(host=rabbitmq_host, port=5672, credentials=credentials)
         )
         channel = connection.channel()
         channel.queue_declare(queue='email_queue') # Para garantir que a fila existe
@@ -22,8 +23,23 @@ def enviar_notificacao_fila(texto_msg):
     except Exception as e:
         print(f"[RabbitMQ] Erro ao enviar mensagem: {e}")
 
+def enviar_notificacao_cliente(texto_msg):
+    try:
+        credentials = pika.PlainCredentials('user', 'password')
+        rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=rabbitmq_host, port=5672, credentials=credentials)
+        )
+        channel = connection.channel()
+        channel.queue_declare(queue='notificacao_cliente_queue')
 
-import os
+        channel.basic_publish(exchange='', routing_key='notificacao_cliente_queue', body=texto_msg)
+        print(f"[RabbitMQ] Notificação enviada para cliente: {texto_msg}")
+        connection.close()
+    except Exception as e:
+        print(f"[RabbitMQ] Erro ao enviar notificação: {e}")
+
+
 # Função que age como CLIENTE do Socket (igual ao curl ou browser)
 def enviar_socket(dados_dict):
     HOST = os.getenv('SOCKET_HOST', '127.0.0.1')
@@ -66,6 +82,7 @@ def rota_agendar():
     if "SUCESSO" in resposta_servico:
         msg_notificacao = f"Agendamento confirmado para Médico {dados['id_medico']} na data {dados['data']} às {dados['horario']}"
         enviar_notificacao_fila(msg_notificacao)
+        enviar_notificacao_cliente(msg_notificacao)
     
     # Retorna para o usuário (navegador/postman) o que o Socket respondeu
     return jsonify({

@@ -100,5 +100,6 @@ services:
       - "8081:8081"
     environment:
       - SOCKET_HOST=servico-agendamento
+      - RABBITMQ_HOST=rabbitmq
     depends_on:
       - servico-agendamento

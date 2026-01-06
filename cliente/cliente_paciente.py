@@ -1,11 +1,62 @@
 import requests
 import sys
+import threading
+import pika
 
 # Configurações de conexão
 API_USUARIOS = "http://localhost:8083"
 API_AGENDAMENTO = "http://localhost:8081"
 
+# Flag para controlar a thread
+thread_notificacao_ativa = True
+
+def receber_notificacoes():
+    """Thread que escuta notificações do RabbitMQ em tempo real"""
+    global thread_notificacao_ativa
+    
+    while thread_notificacao_ativa:
+        try:
+            # Conexão com o RabbitMQ
+            credentials = pika.PlainCredentials('user', 'password')
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host='localhost', port=5672, credentials=credentials)
+            )
+            channel = connection.channel()
+            
+            # Declara a fila (usa a mesma que o worker ou uma específica)
+            channel.queue_declare(queue='notificacao_cliente_queue')
+            
+            # Função callback chamada quando uma mensagem chega
+            def callback(ch, method, properties, body):
+                mensagem = body.decode('utf-8')
+                print(f"\n\n{'='*50}")
+                print(f"🔔 NOVA NOTIFICAÇÃO: {mensagem}")
+                print(f"{'='*50}\n")
+            
+            # Configura o consumidor
+            channel.basic_consume(
+                queue='notificacao_cliente_queue', 
+                on_message_callback=callback, 
+                auto_ack=True
+            )
+            
+            print("[Sistema] Escuta de notificações ativada...")
+            channel.start_consuming()
+            
+        except pika.exceptions.AMQPConnectionError:
+            print("[Sistema] RabbitMQ não disponível, tentando reconectar em 5s...")
+            import time
+            time.sleep(5)
+        except Exception as e:
+            print(f"[Sistema] Erro na escuta de notificações: {e}")
+            import time
+            time.sleep(5)
+
 def menu_principal():
+    # Inicia a thread de notificações em background
+    thread_notificacao = threading.Thread(target=receber_notificacoes, daemon=True)
+    thread_notificacao.start()
+    
     while True:
         print("\n=== SYSTEM HOSPITALAR: PACIENTE ===")
         print("1. Cadastrar")
@@ -18,6 +69,8 @@ def menu_principal():
         elif opcao == '2':
             fazer_login()
         elif opcao == '0':
+            global thread_notificacao_ativa
+            thread_notificacao_ativa = False
             sys.exit()
         else:
             print("Opção inválida.")
