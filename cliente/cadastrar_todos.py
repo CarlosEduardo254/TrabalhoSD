@@ -230,7 +230,11 @@ def main():
                     agendamentos_criados.append(resultado)
                 resultados["sucesso"] += 1
             else:
-                print(f"   ❌ Consulta #{i+1} - Erro: {resultado}")
+                mensagem_erro = str(resultado).lower()
+                if "indisponível" in mensagem_erro or "horário" in mensagem_erro:
+                    print(f"   ⚠️ Consulta #{i+1} - Horário indisponível (médico já possui consulta nesta data/hora)")
+                else:
+                    print(f"   ❌ Consulta #{i+1} - Erro do servidor: {resultado}")
                 resultados["falha"] += 1
     else:
         print("   ⚠️ Não foi possível criar agendamentos (faltam médicos ou pacientes)")
