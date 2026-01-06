@@ -2,7 +2,7 @@
 
 Serviço responsável pelo gerenciamento de todos os tipos de usuários do sistema (pacientes, médicos, recepcionistas e administradores).
 
-## 🎯 Função
+## Função
 
 Gerencia o CRUD completo de usuários e autenticação via gRPC.
 
@@ -20,7 +20,7 @@ Gerencia o CRUD completo de usuários e autenticação via gRPC.
                                                                     └─────────────────┘
 ```
 
-## 📁 Estrutura
+## Estrutura
 
 ```
 usuarios/
@@ -33,7 +33,7 @@ usuarios/
     └── src/main/java/...
 ```
 
-## 🔌 Endpoints REST (Interface)
+## Endpoints REST (Interface)
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
@@ -43,7 +43,7 @@ usuarios/
 | DELETE | `/deletar_usuario` | Excluir usuário |
 | POST | `/listar_usuarios` | Listar por tipo |
 
-## 📡 Métodos gRPC
+## Métodos gRPC
 
 | Método | Descrição |
 |--------|-----------|
@@ -54,7 +54,7 @@ usuarios/
 | `DeletarUsuario` | Excluir usuário |
 | `ListarUsuarios` | Listar usuários por tipo |
 
-## 👥 Tipos de Usuário
+## Tipos de Usuário
 
 | Tipo | Campo Extra |
 |------|-------------|
@@ -63,7 +63,7 @@ usuarios/
 | `recepcionista` | - |
 | `admin` | - |
 
-## 🐳 Docker
+## Docker
 
 ```yaml
 servico-usuarios:
@@ -83,7 +83,7 @@ interface-usuarios:
     - servico-usuarios
 ```
 
-## 🔗 Dependências
+## Dependências
 
 - **Java 21** (Spring Boot)
 - **Python 3.11** (Flask + gRPC)
