@@ -98,7 +98,9 @@ docker-compose up --build
 
 ## Scripts Cliente
 
-Os scripts cliente estão na pasta `cliente/`. Existem dois tipos:
+Os scripts cliente estão na pasta `cliente/`. 
+
+**Docker Hub:** [carloseduardo42/cliente-hospital](https://hub.docker.com/r/carloseduardo42/cliente-hospital)
 
 ### Scripts CLI (Linha de Comando)
 
@@ -132,12 +134,18 @@ Scripts com interface de menu interativo:
 
 ## Exemplos de Uso (Scripts CLI)
 
-### Configurar Ambiente
+### Opção 1: Execução Local (Python instalado)
 ```powershell
 cd cliente
 python -m venv .venv
 .\.venv\Scripts\Activate
-pip install requests
+pip install requests pika
+```
+
+### Opção 2: Execução via Docker
+```powershell
+docker pull carloseduardo42/cliente-hospital:latest
+docker run -it --rm --network host carloseduardo42/cliente-hospital python <script>.py <comando> <args>
 ```
 
 ### Paciente
@@ -250,7 +258,8 @@ TrabalhoSD/
 │   ├── servico_agendamento.py    # Servidor Socket
 │   └── usuario_pb2*.py           # Stubs gRPC gerados
 ├── adapter/               # Adapter Python para RMI
-├── cliente/               # Scripts cliente
+├── cliente/               # Scripts cliente (Docker Hub: carloseduardo42/cliente-hospital)
+│   ├── Dockerfile
 │   ├── admin.py, medico.py, paciente.py, recepcionista.py (CLI)
 │   ├── cliente_*.py (Interativos)
 │   └── cadastrar_todos.py
