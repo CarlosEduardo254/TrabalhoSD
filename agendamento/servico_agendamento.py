@@ -68,7 +68,7 @@ def orquestrar_agendamento(dados):
     except Exception as e:
         return {
             "sucesso": False,
-            "mensagem": "Erro ao criar consulta"
+            "mensagem": str(e)
         }
 
     # 3. Chamar serviço de validação
